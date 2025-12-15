@@ -1,18 +1,126 @@
-## 🧠 Control & State Estimation
-The system is underactuated, meaning we cannot directly measure all states (like the ball's exact velocity). We implemented two advanced observers to estimate these missing variables from noisy IMU data:
+# Self-Balancing Robot with Ball-on-Head Control
+**Modeling, Control, and Observer Design using MATLAB & Simulink**
 
-### 1. State Observers (Sensor Fusion)
-* **Full-Order Observer ("Max Order"):** Reconstructs the entire state vector ($\hat{x}$) using the plant output and estimation error.
-* **Reduced-Order Observer ("Min Order"):** Designed to estimate *only* the unmeasured states (angular velocities) to reduce computational load.
-* **Validation:** Comparison plots show the Observer error converging to zero within $t < 2s$.
+## Overview
+This project studies the modeling, control, and state estimation of a **nonlinear self-balancing wheeled robot** that must balance a **ball on its head** under disturbances and measurement noise.
 
-### 2. Signal Processing Pipeline
-Real-world sensors are noisy. We simulated this by injecting White Gaussian Noise into the feedback loop and built a cleaning pipeline:
-1.  **Noise Injection:** Added random noise to sensor blocks in Simulink.
-2.  **FFT Analysis:** Performed Fast Fourier Transform on the noisy signal to identify high-frequency noise components.
-3.  **Filter Design:** Designed a **Butterworth Low-Pass Filter** based on the FFT cutoff frequency.
-4.  **Result:** The filtered signal restored system stability where the raw noisy signal caused jitter.
+The goal is to bridge **control theory** with **practical implementation**, exposing real-world challenges such as nonlinear dynamics, noise, partial state measurements, and black-box testing.
 
-## 🎛️ Control Strategies
-* **LQR (Linear Quadratic Regulator):** Minimized a cost function $J = \int (x^T Q x + u^T R u) dt$ to balance performance vs. energy.
-* **PID (Root Locus):** Tuned via Root Locus to pull closed-loop poles into the stable left-half plane.
+All modeling, simulations, and analysis are performed using **MATLAB and Simulink**.
+
+---
+
+## System Description
+- **System**: Self-balancing robot with a ball mounted on top  
+- **Motion**: 2D planar motion  
+- **Assumptions**:
+  - No-slip condition
+  - Rigid body dynamics
+  - Ball rolls without slipping
+- **Measured Output**:
+  - Robot angular orientation (IMU)
+  - Wheel angle (encoder assumed if required)
+
+The system is **open-loop unstable** and nonlinear.
+
+---
+
+## Project Objectives
+- Derive nonlinear equations of motion using first principles
+- Convert the model to state-space form
+- Linearize the system about equilibrium points
+- Design and compare different control strategies
+- Design state observers under noisy measurements
+- Validate results using MATLAB and Simulink
+- Quantitatively compare controller and observer performance
+
+---
+
+## Tasks Performed
+
+### 1. System Modeling
+- Derived governing differential equations
+- Identified equilibrium points
+- Linearized the nonlinear model
+- Validated behavior through simulation
+
+---
+
+### 2. Controller Design
+
+#### PID Controller
+- Derived transfer function
+- Designed PID controller using root locus techniques
+- Tuned for steady-state and transient performance
+
+#### Full State Feedback Controller
+- Designed using pole placement and/or LQR
+- Justified design assumptions and constraints
+- Achieved desired stability and performance metrics
+
+#### Controller Comparison
+- Compared PID vs full-state feedback
+- Metrics evaluated:
+  - Settling time
+  - Overshoot
+  - Steady-state error
+  - Control effort
+- Quantitative performance comparison provided
+
+---
+
+### 3. Observer Design
+
+#### Full-Order Observer
+- Designed and implemented in Simulink
+- Integrated with state feedback control
+
+#### Reduced-Order Observer
+- Designed to meet similar performance requirements
+- Compared estimation accuracy and convergence
+
+#### Noise & Signal Processing
+- Added measurement noise using Simulink noise blocks
+- Performed FFT analysis on noisy signals
+- Designed and applied a low-pass filter
+- Evaluated observer and controller performance with:
+  - Noisy output
+  - Filtered output
+
+---
+
+### 4. Blind (Black-Box) Testing
+- Controllers and observers tested on a black-box system
+- System parameters unknown during testing
+- Emphasis on automated gain computation
+- User input limited to a maximum of two parameters
+
+---
+
+## Tools Used
+- **MATLAB**
+  - System modeling and linearization
+  - Controller and observer design
+  - FFT and signal filtering
+- **Simulink**
+  - Nonlinear simulations
+  - Noise injection
+  - Observer implementation
+  - Visualization of system response
+
+---
+
+## Learning Outcomes
+- Nonlinear system modeling
+- Linearization techniques
+- PID and state feedback controller design
+- Full and reduced-order observer design
+- MATLAB programming and scripting
+- Simulink-based system visualization
+- Frequency-domain noise analysis
+- Black-box system testing
+- Technical report writing
+
+---
+
+## Repository Structure
