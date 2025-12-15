@@ -1,31 +1,18 @@
-# Self-Balancing Robot with Ball Balancer 🤖⚖️
+## 🧠 Control & State Estimation
+The system is underactuated, meaning we cannot directly measure all states (like the ball's exact velocity). We implemented two advanced observers to estimate these missing variables from noisy IMU data:
 
-**Tech Stack:** MATLAB | Simulink | Control Systems | State-Space Analysis
+### 1. State Observers (Sensor Fusion)
+* **Full-Order Observer ("Max Order"):** Reconstructs the entire state vector ($\hat{x}$) using the plant output and estimation error.
+* **Reduced-Order Observer ("Min Order"):** Designed to estimate *only* the unmeasured states (angular velocities) to reduce computational load.
+* **Validation:** Comparison plots show the Observer error converging to zero within $t < 2s$.
 
-## 📌 Project Overview
-This project implements advanced control strategies for a **coupled underactuated system**: a 2-wheeled self-balancing robot that must simultaneously balance a free-rolling ball on its top surface.
+### 2. Signal Processing Pipeline
+Real-world sensors are noisy. We simulated this by injecting White Gaussian Noise into the feedback loop and built a cleaning pipeline:
+1.  **Noise Injection:** Added random noise to sensor blocks in Simulink.
+2.  **FFT Analysis:** Performed Fast Fourier Transform on the noisy signal to identify high-frequency noise components.
+3.  **Filter Design:** Designed a **Butterworth Low-Pass Filter** based on the FFT cutoff frequency.
+4.  **Result:** The filtered signal restored system stability where the raw noisy signal caused jitter.
 
-The system is modeled in 2D space, deriving governing differential equations and converting them into **State-Space form**.
-
-![System Diagram](images/system_diagram.png)
-*(Figure: 2D Model of the Robot-Ball Coupled System)*
-
-## 🧠 Control Architecture
-We designed and compared two primary control approaches:
-1.  **LQR (Linear Quadratic Regulator):** Optimized for steady-state tracking and energy efficiency.
-2.  **PID (Root Locus):** Tuned for robust error correction.
-
-### Key Features
-* **State Estimation:** Implemented **Full-Order and Reduced-Order Observers** to estimate unmeasured states.
-* **Noise Handling:** Analyzed sensor noise using **FFT** and implemented **Butterworth Low-Pass Filters**.
-* **Robustness:** Validated via "Blind Testing" on a black-box system.
-
-## 📊 Results
-* **Performance:** The LQR controller achieved stabilization faster than the PID approach.
-* **Observer Accuracy:** The Reduced-Order Observer successfully estimated angular velocity with minimal error.
-
-![Simulation Result](images/simulation_result.png)
-
-## 📂 Repository Structure
-* `src/`: Contains all `.m` scripts and `.slx` Simulink models.
-* `images/`: System diagrams and simulation result plots.
+## 🎛️ Control Strategies
+* **LQR (Linear Quadratic Regulator):** Minimized a cost function $J = \int (x^T Q x + u^T R u) dt$ to balance performance vs. energy.
+* **PID (Root Locus):** Tuned via Root Locus to pull closed-loop poles into the stable left-half plane.
