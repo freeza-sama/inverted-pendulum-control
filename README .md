@@ -1,86 +1,76 @@
-# Control & State Estimation of a Coupled Underactuated System 🤖
+# Ball and Beam Control System: Modeling, Control, and Estimation
 
-**Project Status:** Complete  
-**Tools:** MATLAB, Simulink, Control System Toolbox
+## Overview
+This project provides a comprehensive analysis and implementation of a Ball and Beam control system using MATLAB and Simulink. The workflow spans from first-principles mathematical modeling (Lagrangian mechanics) to advanced state estimation and robust signal processing in the presence of sensor noise.
 
-## 1. 📝 Abstract
-This project focuses on the stabilization of a highly unstable, underactuated system: a 2-wheeled self-balancing robot with a free-rolling ball on top. The primary objective was to design a robust control architecture capable of maintaining equilibrium in the presence of sensor noise and unmeasured states.
+## Project Features
+* **Mathematical Modeling:** Non-linear derivation using the Lagrangian formulation and linearization for control design.
+* **Controller Design:** Comparative analysis of **PID** (Proportional-Integral-Derivative) and **LQR** (Linear-Quadratic Regulator) controllers.
+* **State Estimation:** Implementation of **Full-Order** and **Minimal-Order** observers to estimate system states.
+* **Signal Processing:** * Noise injection into sensor outputs.
+    * FFT (Fast Fourier Transform) analysis to identify noise frequencies.
+    * Low-Pass Filter design for signal restoration.
 
-Key contributions include:
-1.  **Mathematical Modeling:** Derivation of State-Space equations.
-2.  **Signal Processing:** FFT analysis of sensor noise and Butterworth Low-Pass Filter design.
-3.  **State Estimation:** Implementation of Full-Order and Reduced-Order (Min-Order) Observers.
-4.  **Control Design:** Comparative analysis of LQR (Optimal Control) vs. PID (Classical Control).
+## Prerequisites
+* MATLAB (R202xx recommended)
+* Simulink
+* Control System Toolbox
+* Signal Processing Toolbox
+* Symbolic Math Toolbox (for Lagrangian derivation)
 
----
+## Project Workflow & File Structure
 
-## 2. 📐 Mathematical Modeling
-The system dynamics were linearized around the upright equilibrium point. We derived the governing differential equations and converted them into **State-Space Representation**:
+The project is executed in the following chronological phases. 
 
-$$\dot{x} = Ax + Bu$$
-$$y = Cx + Du$$
+### Phase 1: Mathematical Modeling
+1.  **Derivation:** Equations of motion derived using $\mathcal{L} = T - V$.
+2.  **Simulation:** Open-loop verification in MATLAB to ensure physics compliance (e.g., gravity effects on beam tilt).
 
-Where the state vector $x$ includes:
-* $\theta$: Rod angle
-* $\dot{\theta}$: Angular velocity
-* $x$: Cart position
-* $\dot{x}$: Cart velocity
+### Phase 2: Controller Implementation
+* **PID Control:** Classical control design tuned for stabilization.
+* **LQR Control:** Optimal control design minimizing the cost function $J = \int (x^T Q x + u^T R u) dt$.
+* *File:* `controller_design.m` (Calculates gains $K_{pid}$ and $K_{lqr}$).
 
----
+### Phase 3: Observer Design (Simulink)
+Implementation of state observers to reconstruct state vectors from limited sensor data.
+* **Full-Order Observer:** Estimates all system states.
+* **Minimal-Order Observer:** Estimates only unmeasured states to reduce computational load.
+* *File:* `observer_sim.slx`
 
-## 3. 📡 Signal Processing & Noise Handling
-Real-world sensors (IMUs/Encoders) introduce high-frequency noise. We simulated this environment to ensure robust controller performance.
+### Phase 4: Robustness & Signal Processing
+1.  **Noise Injection:** Gaussian white noise added to the sensor output channel.
+2.  **Spectral Analysis:** FFT performed on noisy signals to characterize the noise profile.
+3.  **Filter Design:** Butterworth Low-Pass Filter designed to attenuate high-frequency noise.
+4.  **Final Verification:** Closed-loop simulation with Noise + Filter + Observer + Controller.
 
-### 3.1 Noise Injection & FFT Analysis
-* **Simulation:** White Gaussian Noise was injected into the sensor feedback loop in Simulink.
-* **Analysis:** A Fast Fourier Transform (FFT) was performed on the noisy signal to identify the noise spectrum.
-* **Findings:** Significant noise power was observed at frequencies $> 50$ Hz, interfering with the derivative terms in the controller.
+## How to Run
 
-### 3.2 Filter Design
-To mitigate this, a **2nd-Order Butterworth Low-Pass Filter** was designed.
-* **Cutoff Frequency:** Selected based on the FFT results to attenuate noise while preserving system dynamics.
-* **Result:** The filtered signal successfully restored stability, preventing high-frequency chatter in the actuators.
+1.  **Initialize Parameters:** Run the initialization script to load physical constants (mass, length, gravity) and calculate matrices ($A, B, C, D$).
+    ```matlab
+    >> init_params
+    ```
 
----
+2.  **Calculate Gains:** Run the design script to generate controller gains and observer matrices.
+    ```matlab
+    >> design_controllers
+    ```
 
-## 4. 👁️ State Estimation (Observer Design)
-Since not all states (specifically angular velocities) were directly measurable, we designed observers to estimate the full state vector $\hat{x}$.
+3.  **Run Simulation:** Open the Simulink model to view the Ball and Beam behavior.
+    ```matlab
+    >> open_system('BallBeam_Main.slx')
+    ```
+    *Select the desired configuration (PID/LQR, Full/Min Observer) using the manual switch blocks inside the model.*
 
-### 4.1 Full-Order Observer (Max-Order)
-A Luenberger Observer was designed to estimate all states.
-* **Dynamics:** $\dot{\hat{x}} = A\hat{x} + Bu + L(y - C\hat{x})$
-* **Pole Placement:** Observer poles were placed $5\times$ to $10\times$ faster than the controller poles to ensure rapid convergence of the error dynamics $e(t) \to 0$.
+4.  **Analyze Noise:** Run the FFT script to generate frequency domain plots before and after filtering.
+    ```matlab
+    >> noise_analysis_fft
+    ```
 
-### 4.2 Reduced-Order Observer (Min-Order)
-To reduce computational load, we implemented a Reduced-Order Observer that estimates *only* the unmeasured states.
-* **Method:** Partitioned the state vector into measured ($x_m$) and unmeasured ($x_u$) components.
-* **Outcome:** The Min-Order observer provided accurate velocity tracking with lower processing overhead compared to the Full-Order variant.
+## Results
+* **Step Response:** Comparison of settling time and overshoot between PID and LQR.
+* **Estimation Error:** Convergence plots showing the difference between actual states and observed states.
+* **Noise Rejection:** FFT plots demonstrating the efficacy of the Low-Pass Filter.
 
----
-
-## 5. 🎛️ Controller Design & Results
-
-### 5.1 LQR (Linear Quadratic Regulator)
-We minimized the quadratic cost function:
-$$J = \int_0^\infty (x^T Q x + u^T R u) dt$$
-* **Q Matrix:** Tuned to penalize deviations in the "Ball Position" heavily.
-* **Performance:** LQR showed superior steady-state performance and energy efficiency compared to PID.
-
-### 5.2 PID Control
-Designed using Root Locus techniques to ensure all closed-loop poles reside in the Left Half Plane (LHP). While stable, the PID response showed slightly higher overshoot during transient phases.
-
-### 5.3 Simulation Results
-*(Ensure your image filename matches exactly below)*
-![Simulation Graphs](images/simulation_result.png)
-*Figure 1: Comparison of System Response (LQR vs PID) under impulse disturbance.*
-
----
-
-## 6. 📂 Project Structure
-* `src/`: MATLAB scripts for LQR calculation, Observer matrices, and Simulink `.slx` models.
-* `images/`: System block diagrams and result plots.
-
-## 🚀 How to Run
-1.  Clone the repository.
-2.  Run `src/init_params.m` to load system matrices ($A, B, C, D$) and filter coefficients.
-3.  Open `src/main_simulation.slx` and click **Run**.
+## Author
+[Your Name/Student ID]
+[Date]
